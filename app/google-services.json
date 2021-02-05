@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "174512763793",
+    "project_id": "uni4989-e7df7",
+    "storage_bucket": "uni4989-e7df7.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:174512763793:android:d25306f126af6459762030",
+        "android_client_info": {
+          "package_name": "com.uni4989.artstore"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "174512763793-158qujjlln5e35vfpj6hcpvb0vkt2evm.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB03-lbvMJKhr_DZzP9KuhI2QZZrOihHq8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "174512763793-158qujjlln5e35vfpj6hcpvb0vkt2evm.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
