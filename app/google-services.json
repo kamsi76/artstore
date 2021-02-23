@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "174512763793-0ik262u1hmvlf9i31qv7t3ceim8cnm5s.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.uni4989.artstore",
+            "certificate_hash": "d75e8c390a203d893ee289f9d950f1424764e3d1"
+          }
+        },
+        {
           "client_id": "174512763793-158qujjlln5e35vfpj6hcpvb0vkt2evm.apps.googleusercontent.com",
           "client_type": 3
         }

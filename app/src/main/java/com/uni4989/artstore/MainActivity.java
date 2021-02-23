@@ -1,10 +1,13 @@
 package com.uni4989.artstore;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.AlertDialog;
 import android.content.ClipData;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.net.Uri;
@@ -14,6 +17,7 @@ import android.os.Parcelable;
 import android.provider.MediaStore;
 import android.provider.Settings;
 import android.os.Bundle;
+import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
@@ -34,20 +38,24 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.iid.FirebaseInstanceId;
-//import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig;
 import com.google.firebase.remoteconfig.FirebaseRemoteConfigSettings;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "MainActivity";
 
     private final static int POPUP_REQUEST_CODE = 100;
+
+    private FirebaseRemoteConfig remoteConfig;
 
     public ValueCallback<Uri> filePathCallbackNormal;
     public ValueCallback<Uri[]> filePathCallbackLollipop;
@@ -57,28 +65,11 @@ public class MainActivity extends AppCompatActivity {
 
 
     private WebView mWebView;
-    private FirebaseRemoteConfig mFirebaseRemoteConfig;
     private ProgressBar progressBar;
 
     private String ver;
     private String token;
-
-    public void tempRemot() {
-
-        mFirebaseRemoteConfig.fetch(0).addOnCompleteListener(task -> {
-
-            mFirebaseRemoteConfig.activateFetched();
-
-            ver = mFirebaseRemoteConfig.getString("latest_version");
-            String ver2 = mFirebaseRemoteConfig.getString("test");
-
-            if (ver2.equals("1.1.1.1")) {
-                Log.d(TAG, "onComplete: 테스트버전");
-            } else if (ver.equals("1.1.4")) {
-                Log.d(TAG, "onComplete: 정상버전");
-            }
-        });
-    }
+    private long latestVersion = 0;
 
     public void popWeb(String url) {
         Intent intent = new Intent(MainActivity.this, PopupWebActivity.class);
@@ -96,54 +87,149 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    //권한 획득 여부 확인
+    public void checkVersion() {
+
+        remoteConfig = FirebaseRemoteConfig.getInstance();
+        FirebaseRemoteConfigSettings configSettings = new FirebaseRemoteConfigSettings.Builder()
+                //.setMinimumFetchIntervalInSeconds(3600)
+                .build();
+        remoteConfig.setConfigSettingsAsync(configSettings);
+
+        remoteConfig.fetchAndActivate()
+                .addOnCompleteListener(this, task -> {
+                    if (task.isSuccessful()) {
+                        latestVersion = remoteConfig.getLong("latest_version");
+                        Log.d("LATEST_VERSION", " = " + latestVersion);
+
+                        try {
+                            long appVersion;
+                            PackageInfo pi = getPackageManager().getPackageInfo(getPackageName(), 0);
+                            if( Build.VERSION.SDK_INT > Build.VERSION_CODES.P) {
+                                appVersion = pi.getLongVersionCode();
+                            } else {
+                                appVersion = pi.versionCode;
+                            }
+
+                            if( latestVersion > appVersion ) {
+                                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                                builder.setTitle("업데이트 알림!");
+                                builder.setMessage("최신 업데이트가 있습니다.\n업데이트 받으시기 바랍니다.")
+                                        .setCancelable(false)
+                                        .setPositiveButton("업데이트", (dialog, which) -> {
+                                            Intent intent = new Intent(Intent.ACTION_VIEW);
+                                            intent.setData(Uri.parse("market://details?id=com.kakao.talk"));
+                                            startActivity(intent);
+                                            dialog.cancel();
+                                            finish();
+                                        })
+                                        .create()
+                                        .show();
+                            }
+
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            Log.e(TAG, "Version Check Fail!!!!!!!");
+                        }
+                    }
+                });
+
+
+    }
+
+    @SuppressLint("MissingPermission")
+    public String getPhoneNumber() {
+        String phoneNum = "";
+        try {
+            Log.d(TAG, "onCreate: 휴대폰 번호 획득 시도!!!");
+            TelephonyManager telManager = (TelephonyManager) getSystemService(TELEPHONY_SERVICE);
+            phoneNum = telManager.getLine1Number();
+
+            Log.d("PHONE NUMBER : ", phoneNum);
+            if (phoneNum.startsWith("+82")) {
+                phoneNum = phoneNum.replace("+82", "0");
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            Log.d(TAG, "onCreate: 휴대폰 번호 획득 실패!!!");
+        }
+
+        return phoneNum;
+    }
+
+    public void getToken() {
+        try {
+
+            FirebaseInstanceId.getInstance().getInstanceId().addOnCompleteListener(task -> {
+                        if (!task.isSuccessful()) {
+                            Log.w(TAG, "getInstanceId Failed!!!", task.getException());
+                            return;
+                        }
+                        token = task.getResult().getToken();
+                    });
+
+        } catch (Exception e) {
+            Log.d(TAG, "onCreate: Firebase Setting 에러");
+        }
+    }
+
+    /**
+     * 권한 획득 여부 확인
+     */
     @TargetApi(Build.VERSION_CODES.M)
     public void checkVerify() {
 
         if (
-                ContextCompat.checkSelfPermission(this,android.Manifest.permission.ACCESS_NETWORK_STATE) != PackageManager.PERMISSION_GRANTED ||
-                ContextCompat.checkSelfPermission(this,android.Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED ||
-                ContextCompat.checkSelfPermission(this,android.Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED ||
-                ContextCompat.checkSelfPermission(this,android.Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_NETWORK_STATE) != PackageManager.PERMISSION_GRANTED ||
+                        ContextCompat.checkSelfPermission(this, android.Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED ||
+                        ContextCompat.checkSelfPermission(this, android.Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED ||
+                        ContextCompat.checkSelfPermission(this, android.Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED ||
+                        ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_NUMBERS) != PackageManager.PERMISSION_GRANTED &&
+                        ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
 
             //카메라 또는 저장공간 권한 획득 여부 확인
-            if (ActivityCompat.shouldShowRequestPermissionRationale(this,android.Manifest.permission.WRITE_EXTERNAL_STORAGE) ||
-                    ActivityCompat.shouldShowRequestPermissionRationale(this,android.Manifest.permission.CAMERA)) {
+            if (
+                    ActivityCompat.shouldShowRequestPermissionRationale(this, android.Manifest.permission.ACCESS_NETWORK_STATE) ||
+                            ActivityCompat.shouldShowRequestPermissionRationale(this, android.Manifest.permission.WRITE_EXTERNAL_STORAGE) ||
+                            ActivityCompat.shouldShowRequestPermissionRationale(this, android.Manifest.permission.READ_EXTERNAL_STORAGE) ||
+                            ActivityCompat.shouldShowRequestPermissionRationale(this, android.Manifest.permission.CAMERA) ||
+                            ActivityCompat.shouldShowRequestPermissionRationale(this, android.Manifest.permission.READ_PHONE_NUMBERS) ||
+                            ActivityCompat.shouldShowRequestPermissionRationale(this, android.Manifest.permission.READ_PHONE_STATE)
+            ) {
 
-                Toast.makeText(getApplicationContext(),"권한 관련 요청을 허용해 주셔야 카메라 캡처이미지 사용등의 서비스를 이용가능합니다.",Toast.LENGTH_SHORT).show();
+                AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                builder.setTitle("알림");
+                builder.setMessage("권한을 허용해주셔야 유니아트 앱을 사용할 수 있습니다.");
+                builder.setPositiveButton("예", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        Intent appDetail = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:" + getPackageName()));
+                        appDetail.addCategory(Intent.CATEGORY_DEFAULT);
+                        appDetail.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        startActivity(appDetail);
+                    }
+                });
+
+                builder.setNegativeButton("아니오", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        finish();
+                    }
+                });
+
+                builder.create().show();
+
+
+                Toast.makeText(getApplicationContext(), "권한 관련 요청을 허용해 주셔야 카메라 캡처이미지 사용등의 서비스를 이용가능합니다.", Toast.LENGTH_SHORT).show();
 
             } else {
                 // 카메라 및 저장공간 권한 요청
                 ActivityCompat.requestPermissions(this, new String[]{
                         android.Manifest.permission.INTERNET, android.Manifest.permission.CAMERA,
                         android.Manifest.permission.ACCESS_NETWORK_STATE,
-                        android.Manifest.permission.WRITE_EXTERNAL_STORAGE, android.Manifest.permission.READ_EXTERNAL_STORAGE
-                    }, 1);
-            }
-        }
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-
-        if( requestCode == 1 ) {
-            if( grantResults.length > 0 ) {
-                for (int grantResult : grantResults) {
-                    if (grantResult == PackageManager.PERMISSION_DENIED) {
-                        new AlertDialog.Builder(this).setTitle("알림").setMessage("권한을 허용해주셔야 앱을 이용할 수 있습니다.")
-                                .setPositiveButton("종료", (dialog, which) -> {
-                                    dialog.dismiss();
-                                    finish();
-                                }).setNegativeButton("권한 설정", (dialog, which) -> {
-                                    dialog.dismiss();
-                                    Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
-                                            .setData(Uri.parse("package:" + getApplicationContext().getPackageName()));
-                                    getApplicationContext().startActivity(intent);
-                                }).setCancelable(false).show();
-                        return;
-                    }
-                }
+                        android.Manifest.permission.WRITE_EXTERNAL_STORAGE, android.Manifest.permission.READ_EXTERNAL_STORAGE,
+                        android.Manifest.permission.READ_PHONE_NUMBERS, android.Manifest.permission.READ_PHONE_STATE
+                }, 1);
             }
         }
     }
@@ -154,31 +240,9 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        //chkGpsService();
+        checkVersion();
         checkVerify();
-
-        try {
-            token = FirebaseInstanceId.getInstance().getToken();
-            Log.d(TAG, "TOKEN : " + token);
-
-            mFirebaseRemoteConfig = FirebaseRemoteConfig.getInstance();
-
-            FirebaseRemoteConfigSettings configSettings = new FirebaseRemoteConfigSettings.Builder()
-                    .setDeveloperModeEnabled(BuildConfig.DEBUG)
-                    .build();
-
-            Log.d(TAG, "onCreate: 999");
-            mFirebaseRemoteConfig.setConfigSettings(configSettings);
-            //mFirebaseRemoteConfig.setConfigSettings(configSettings);
-
-            Log.d(TAG, "onCreate: 101010");
-
-            tempRemot();
-        } catch (Exception e) {
-            Log.d(TAG, "onCreate: Firebase Setting 에러");
-        }
-
-        //FirebaseMessaging.getInstance().subscribeToTopic("ALL");
+        getToken();
 
         mWebView = (WebView) findViewById(R.id.activity_main_webview);
 
@@ -188,18 +252,12 @@ public class MainActivity extends AppCompatActivity {
         webSettings.setSupportMultipleWindows(true);
         webSettings.setTextZoom(100);
 
-//        webSettings.setDomStorageEnabled(true);
-//        webSettings.setAllowContentAccess(true);
-//        webSettings.setAllowFileAccess(true);
-
-
         mWebView.addJavascriptInterface(new AndroidBridge(), "BRIDGE");
 
         mWebView.setWebViewClient(new WebViewClient() {
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
-                if(url.startsWith("tel:"))
-                {
+                if (url.startsWith("tel:")) {
                     view.stopLoading();
                     startActivity(new Intent(Intent.ACTION_DIAL, Uri.parse(url)));
                     return false;
@@ -220,7 +278,7 @@ public class MainActivity extends AppCompatActivity {
 
                     String result = mWebView.getUrl().substring(mWebView.getUrl().lastIndexOf("(") + 2);
 
-                    String tempUrl = result.substring(0, result.length()-2);
+                    String tempUrl = result.substring(0, result.length() - 2);
 
                     popWeb(tempUrl);
                 }
@@ -230,9 +288,12 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onPageFinished(WebView view, String url) {
                 progressBar.setVisibility(View.GONE);
-                if (mWebView.getUrl().equals( getString(R.string.default_url) )) {
-                    //자바스크립트 호출 형식을 그대로 써주면 됨
+                if (mWebView.getUrl().indexOf("t=login") > 0) {
                     mWebView.loadUrl("javascript:receiveToken('" + token + "')");
+                }
+
+                if (mWebView.getUrl().indexOf("t=member&s=registForm") > 0) {
+                    mWebView.loadUrl("javascript:receivePhone('" + getPhoneNumber() + "')");
                 }
             }
         });
