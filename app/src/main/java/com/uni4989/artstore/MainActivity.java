@@ -5,7 +5,6 @@ import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.AlertDialog;
 import android.content.ClipData;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
@@ -31,15 +30,12 @@ import android.webkit.WebViewClient;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig;
 import com.google.firebase.remoteconfig.FirebaseRemoteConfigSettings;
@@ -47,7 +43,6 @@ import com.google.firebase.remoteconfig.FirebaseRemoteConfigSettings;
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.concurrent.atomic.AtomicReference;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -67,7 +62,6 @@ public class MainActivity extends AppCompatActivity {
     private WebView mWebView;
     private ProgressBar progressBar;
 
-    private String ver;
     private String token;
     private long latestVersion = 0;
 
@@ -99,7 +93,6 @@ public class MainActivity extends AppCompatActivity {
                 .addOnCompleteListener(this, task -> {
                     if (task.isSuccessful()) {
                         latestVersion = remoteConfig.getLong("latest_version");
-                        Log.d("LATEST_VERSION", " = " + latestVersion);
 
                         try {
                             long appVersion;
@@ -136,7 +129,7 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    @SuppressLint("MissingPermission")
+    @SuppressLint({"MissingPermission", "HardwareIds"})
     public String getPhoneNumber() {
         String phoneNum = "";
         try {
@@ -200,22 +193,14 @@ public class MainActivity extends AppCompatActivity {
                 AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
                 builder.setTitle("알림");
                 builder.setMessage("권한을 허용해주셔야 유니아트 앱을 사용할 수 있습니다.");
-                builder.setPositiveButton("예", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        Intent appDetail = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:" + getPackageName()));
-                        appDetail.addCategory(Intent.CATEGORY_DEFAULT);
-                        appDetail.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                        startActivity(appDetail);
-                    }
+                builder.setPositiveButton("예", (dialog, which) -> {
+                    Intent appDetail = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:" + getPackageName()));
+                    appDetail.addCategory(Intent.CATEGORY_DEFAULT);
+                    appDetail.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    startActivity(appDetail);
                 });
 
-                builder.setNegativeButton("아니오", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        finish();
-                    }
-                });
+                builder.setNegativeButton("아니오", (dialog, which) -> finish());
 
                 builder.create().show();
 
@@ -225,10 +210,13 @@ public class MainActivity extends AppCompatActivity {
             } else {
                 // 카메라 및 저장공간 권한 요청
                 ActivityCompat.requestPermissions(this, new String[]{
-                        android.Manifest.permission.INTERNET, android.Manifest.permission.CAMERA,
+                        android.Manifest.permission.INTERNET,
+                        android.Manifest.permission.CAMERA,
                         android.Manifest.permission.ACCESS_NETWORK_STATE,
-                        android.Manifest.permission.WRITE_EXTERNAL_STORAGE, android.Manifest.permission.READ_EXTERNAL_STORAGE,
-                        android.Manifest.permission.READ_PHONE_NUMBERS, android.Manifest.permission.READ_PHONE_STATE
+                        android.Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                        android.Manifest.permission.READ_EXTERNAL_STORAGE,
+                        android.Manifest.permission.READ_PHONE_NUMBERS,
+                        android.Manifest.permission.READ_PHONE_STATE
                 }, 1);
             }
         }
@@ -244,7 +232,7 @@ public class MainActivity extends AppCompatActivity {
         checkVerify();
         getToken();
 
-        mWebView = (WebView) findViewById(R.id.activity_main_webview);
+        mWebView = findViewById(R.id.activity_main_webview);
 
         WebSettings webSettings = mWebView.getSettings();
         webSettings.setJavaScriptEnabled(true);
@@ -303,7 +291,7 @@ public class MainActivity extends AppCompatActivity {
         mWebView.loadUrl( getString(R.string.default_url) );
 
         //progressbar
-        progressBar = (ProgressBar) findViewById(R.id.web_progress);
+        progressBar = findViewById(R.id.web_progress);
         progressBar.setVisibility(View.GONE);
 
     }
@@ -326,7 +314,7 @@ public class MainActivity extends AppCompatActivity {
             case FILECHOOSER_NORMAL_REQ_CODE:
                 if (resultCode == RESULT_OK) {
                     if (filePathCallbackNormal == null) return;
-                    Uri result = (data == null || resultCode != RESULT_OK) ? null : data.getData();
+                    Uri result = data == null ? null : data.getData();
                     //  onReceiveValue 로 파일을 전송한다.
                     filePathCallbackNormal.onReceiveValue(result);
                     filePathCallbackNormal = null;
@@ -348,7 +336,6 @@ public class MainActivity extends AppCompatActivity {
                         }
                     } else {
 
-                        Uri uri = data.getData();
                         ClipData clipData = data.getClipData();
 
                         String dataString = data.getDataString();
