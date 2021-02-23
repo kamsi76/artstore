@@ -117,7 +117,7 @@ public class MainActivity extends AppCompatActivity {
                                         .setCancelable(false)
                                         .setPositiveButton("업데이트", (dialog, which) -> {
                                             Intent intent = new Intent(Intent.ACTION_VIEW);
-                                            intent.setData(Uri.parse("market://details?id=com.kakao.talk"));
+                                            intent.setData(Uri.parse("market://details?id=" + getPackageName()));
                                             startActivity(intent);
                                             dialog.cancel();
                                             finish();
