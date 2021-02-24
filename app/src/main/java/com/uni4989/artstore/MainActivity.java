@@ -280,7 +280,11 @@ public class MainActivity extends AppCompatActivity {
                     mWebView.loadUrl("javascript:receiveToken('" + token + "')");
                 }
 
-                if (mWebView.getUrl().indexOf("t=member&s=registForm") > 0) {
+                if (
+                        mWebView.getUrl().indexOf("t=member&s=registForm") > 0 ||
+                        mWebView.getUrl().indexOf("t=member&s=oauthForm") > 0 ||
+                        mWebView.getUrl().indexOf("t=login&s=find") > 0
+                ) {
                     mWebView.loadUrl("javascript:receivePhone('" + getPhoneNumber() + "')");
                 }
             }
@@ -441,6 +445,9 @@ public class MainActivity extends AppCompatActivity {
                             });
                     builder.show();
 
+                    return false;
+                } else if ( mWebView.getUrl().indexOf("t=member&s=oauthForm") > 0 ) {
+                    mWebView.loadUrl( getString(R.string.default_url) + "/?t=login" );
                     return false;
                 } else if (mWebView.canGoBack()) {
                     mWebView.goBack();
