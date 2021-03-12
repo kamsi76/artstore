@@ -35,6 +35,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig;
@@ -59,6 +60,7 @@ public class MainActivity extends AppCompatActivity {
     private Uri cameraImageUri = null;
 
 
+    private SwipeRefreshLayout swipeRefreshLayout;
     private WebView mWebView;
     private ProgressBar progressBar;
 
@@ -232,6 +234,7 @@ public class MainActivity extends AppCompatActivity {
         checkVerify();
         getToken();
 
+        swipeRefreshLayout = findViewById(R.id.swiperefreshlayout);
         mWebView = findViewById(R.id.activity_main_webview);
 
         WebSettings webSettings = mWebView.getSettings();
@@ -239,6 +242,14 @@ public class MainActivity extends AppCompatActivity {
         webSettings.setJavaScriptCanOpenWindowsAutomatically(true);
         webSettings.setSupportMultipleWindows(true);
         webSettings.setTextZoom(100);
+
+        swipeRefreshLayout.setOnRefreshListener(() -> {
+            /* Webview를 새로고침한다. */
+            mWebView.reload();
+            /* 업데이트가 끝났음을 알림 */
+            swipeRefreshLayout.setRefreshing(false);
+        });
+
 
         mWebView.addJavascriptInterface(new AndroidBridge(), "BRIDGE");
 

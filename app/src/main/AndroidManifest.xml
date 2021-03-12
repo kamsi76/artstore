@@ -27,14 +27,6 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Artstore"
         android:usesCleartextTraffic="true">
-        <activity android:name=".SplashActivity">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN"/>
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-
-        </activity>
-        <activity android:name=".ImageViewActivity" />
 
         <meta-data
             android:name="com.google.android.actions"
@@ -56,7 +48,17 @@
                 android:resource="@xml/file_paths" />
         </provider>
 
+        <activity android:name=".SplashActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+
+        </activity>
+        <activity android:name=".ImageViewActivity" />
+
         <activity android:name=".MainActivity" />
+
         <activity android:name=".ChildPopupWebActivity" />
         <activity android:name=".PopupWebActivity" />
 
