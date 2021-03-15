@@ -11,21 +11,6 @@ public class PopupWebActivity extends AbstractPopWebActive {
     }
 
     @Override
-    public void openWeb(String url) {
-
-        Intent intent = new Intent(PopupWebActivity.this, ChildPopupWebActivity.class);
-
-        intent.putExtra("wepUrl", url);
-        //startActivity(intent);
-        //intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        //intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-
-        startActivityForResult(intent, POPUP_REQUEST_CODE);
-
-        overridePendingTransition(R.anim.fadein, R.anim.fadeout);
-    }
-
-    @Override
     public void openViewImage(String images) {
         Intent intent = new Intent(PopupWebActivity.this, ImageViewActivity.class);
         intent.putExtra("images", images);

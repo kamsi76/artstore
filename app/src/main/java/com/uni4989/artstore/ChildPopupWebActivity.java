@@ -10,9 +10,6 @@ public class ChildPopupWebActivity extends AbstractPopWebActive {
     }
 
     @Override
-    public void openWeb(String url) { }
-
-    @Override
     public void createWeb() {
 
         mPopWebView = (WebView) findViewById(R.id.activity_child_popup_webview);

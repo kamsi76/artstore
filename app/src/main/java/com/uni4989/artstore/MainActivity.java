@@ -30,6 +30,7 @@ import android.webkit.WebViewClient;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -37,6 +38,12 @@ import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
+import com.google.android.gms.common.internal.service.Common;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.dynamiclinks.DynamicLink;
+import com.google.firebase.dynamiclinks.FirebaseDynamicLinks;
+import com.google.firebase.dynamiclinks.ShortDynamicLink;
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig;
 import com.google.firebase.remoteconfig.FirebaseRemoteConfigSettings;
@@ -45,11 +52,9 @@ import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends CommonActivity {
 
     private static final String TAG = "MainActivity";
-
-    private final static int POPUP_REQUEST_CODE = 100;
 
     private FirebaseRemoteConfig remoteConfig;
 
@@ -57,6 +62,7 @@ public class MainActivity extends AppCompatActivity {
     public ValueCallback<Uri[]> filePathCallbackLollipop;
     public final static int FILECHOOSER_NORMAL_REQ_CODE = 2001;
     public final static int FILECHOOSER_LOLLIPOP_REQ_CODE = 2002;
+
     private Uri cameraImageUri = null;
 
 
@@ -68,12 +74,7 @@ public class MainActivity extends AppCompatActivity {
     private long latestVersion = 0;
 
     public void popWeb(String url) {
-        Intent intent = new Intent(MainActivity.this, PopupWebActivity.class);
-
-        intent.putExtra("wepUrl", url);
-        startActivityForResult(intent, POPUP_REQUEST_CODE);
-
-        overridePendingTransition(R.anim.fadein, R.anim.fadeout);
+        super.openWeb(PopupWebActivity.class, url);
     }
 
     public class AndroidBridge {
@@ -81,6 +82,13 @@ public class MainActivity extends AppCompatActivity {
         public void open(final String wepUrl) {
             popWeb(wepUrl);
         }
+
+        @JavascriptInterface //이게 있어야 웹에서 실행이 가능합니다.
+        public void openLink(final String subject, String linkUrl, String imageUrl) {
+            Log.d(TAG, "shouldOverrideUrlLoading: Link Click");
+            createDynamicLink(subject, linkUrl, imageUrl);
+        }
+
     }
 
     public void checkVersion() {
@@ -287,7 +295,10 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onPageFinished(WebView view, String url) {
                 progressBar.setVisibility(View.GONE);
-                if (mWebView.getUrl().indexOf("t=login") > 0) {
+                if (
+                        mWebView.getUrl().indexOf("t=login") > 0 ||
+                        mWebView.getUrl().indexOf("LoginCallback.php") > 0
+                ) {
                     mWebView.loadUrl("javascript:receiveToken('" + token + "')");
                 }
 
@@ -394,6 +405,75 @@ public class MainActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
     }
 
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+
+        Log.d(TAG, "이름" + mWebView.getUrl());
+
+        if (keyCode == KeyEvent.KEYCODE_BACK) {
+            if(!mWebView.getUrl().equals(getString(R.string.default_url))) {
+                if( mWebView.getUrl().indexOf("t=prduct&s=post") > 0) {
+
+                    AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                    builder.setTitle("");
+                    builder.setMessage("등록화면에서 나가시겠습니까?");
+                    builder.setPositiveButton("확인",
+                            (dialog, which) -> {
+                                //Toast.makeText(getApplicationContext(),"예를 선택했습니다.",Toast.LENGTH_LONG).show();
+                                mWebView.goBack();
+                            });
+                    builder.setNegativeButton("취소",
+                            (dialog, which) -> {
+                                //Toast.makeText(getApplicationContext(),"예를 선택했습니다.",Toast.LENGTH_LONG).show();
+                            });
+                    builder.show();
+
+                    return false;
+                } else if ( mWebView.getUrl().indexOf("t=member&s=oauthForm") > 0 ) {
+                    mWebView.loadUrl( getString(R.string.default_url) + "/?t=login" );
+                    return false;
+                } else if (mWebView.canGoBack()) {
+                    mWebView.goBack();
+                    return false;
+                } else {
+                    AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                    builder.setTitle("");
+                    builder.setMessage(getString(R.string.app_name) + " 를\n종료하시겠습니까?.");
+                    builder.setPositiveButton("확인",
+                            (dialog, which) -> {
+                                //Toast.makeText(getApplicationContext(),"예를 선택했습니다.",Toast.LENGTH_LONG).show();
+                                finish();
+                            });
+                    builder.setNegativeButton("취소",
+                            (dialog, which) -> {
+                                //Toast.makeText(getApplicationContext(),"예를 선택했습니다.",Toast.LENGTH_LONG).show();
+                            });
+                    builder.show();
+                    return false;
+                }
+            } else {
+
+                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                builder.setTitle("");
+                builder.setMessage(getString(R.string.app_name) + " 를\n종료하시겠습니까?.");
+                builder.setPositiveButton("확인",
+                        (dialog, which) -> {
+                            //Toast.makeText(getApplicationContext(),"예를 선택했습니다.",Toast.LENGTH_LONG).show();
+                            finish();
+                        });
+                builder.setNegativeButton("취소",
+                        (dialog, which) -> {
+                            //Toast.makeText(getApplicationContext(),"예를 선택했습니다.",Toast.LENGTH_LONG).show();
+                        });
+                builder.show();
+                return false;
+            }
+        }
+
+        return super.onKeyDown(keyCode, event);
+    }
+
     // 카메라 기능 구현
     @SuppressLint("IntentReset")
     private void runCamera(boolean _isCapture) {
@@ -431,73 +511,6 @@ public class MainActivity extends AppCompatActivity {
         else {// 바로 카메라 실행..
             startActivityForResult(intentCamera, FILECHOOSER_LOLLIPOP_REQ_CODE);
         }
-    }
-
-    @Override
-    public boolean onKeyDown(int keyCode, KeyEvent event) {
-
-        Log.d(TAG, "이름" + mWebView.getUrl());
-
-        if (keyCode == KeyEvent.KEYCODE_BACK) {
-            if(!mWebView.getUrl().equals(getString(R.string.default_url))) {
-                if( mWebView.getUrl().indexOf("t=prduct&s=post") > 0) {
-
-                    AlertDialog.Builder builder = new AlertDialog.Builder(this);
-                    builder.setTitle("");
-                    builder.setMessage("등록화면에서 나가시겠습니까?");
-                    builder.setPositiveButton("확인",
-                            (dialog, which) -> {
-                                //Toast.makeText(getApplicationContext(),"예를 선택했습니다.",Toast.LENGTH_LONG).show();
-                                mWebView.goBack();
-                            });
-                    builder.setNegativeButton("취소",
-                            (dialog, which) -> {
-                                //Toast.makeText(getApplicationContext(),"예를 선택했습니다.",Toast.LENGTH_LONG).show();
-                            });
-                    builder.show();
-
-                    return false;
-                } else if ( mWebView.getUrl().indexOf("t=member&s=oauthForm") > 0 ) {
-                    mWebView.loadUrl( getString(R.string.default_url) + "/?t=login" );
-                    return false;
-                } else if (mWebView.canGoBack()) {
-                    mWebView.goBack();
-                    return false;
-                } else {
-                    AlertDialog.Builder builder = new AlertDialog.Builder(this);
-                    builder.setTitle("");
-                    builder.setMessage("종료하시겠습니까?.");
-                    builder.setPositiveButton("확인",
-                            (dialog, which) -> {
-                                //Toast.makeText(getApplicationContext(),"예를 선택했습니다.",Toast.LENGTH_LONG).show();
-                                finish();
-                            });
-                    builder.setNegativeButton("취소",
-                            (dialog, which) -> {
-                                //Toast.makeText(getApplicationContext(),"예를 선택했습니다.",Toast.LENGTH_LONG).show();
-                            });
-                    builder.show();
-                    return false;
-                }
-            } else {
-                AlertDialog.Builder builder = new AlertDialog.Builder(this);
-                builder.setTitle("");
-                builder.setMessage("종료하시겠습니까?.");
-                builder.setPositiveButton("확인",
-                        (dialog, which) -> {
-                            //Toast.makeText(getApplicationContext(),"예를 선택했습니다.",Toast.LENGTH_LONG).show();
-                            finish();
-                        });
-                builder.setNegativeButton("취소",
-                        (dialog, which) -> {
-                            //Toast.makeText(getApplicationContext(),"예를 선택했습니다.",Toast.LENGTH_LONG).show();
-                        });
-                builder.show();
-                return false;
-            }
-        }
-
-        return super.onKeyDown(keyCode, event);
     }
 
     private class WebChromeClientClass extends WebChromeClient {

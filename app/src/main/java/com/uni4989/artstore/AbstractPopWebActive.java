@@ -31,7 +31,7 @@ import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-public abstract class AbstractPopWebActive extends AppCompatActivity {
+public abstract class AbstractPopWebActive extends CommonActivity {
 
     private int layoutId;
 
@@ -208,8 +208,6 @@ public abstract class AbstractPopWebActive extends AppCompatActivity {
 
     public abstract void createWeb();
 
-    public abstract void openWeb(String url);
-
     public void openViewImage(String prductIndx) {}
 
     public class AndroidBridge {
@@ -226,7 +224,12 @@ public abstract class AbstractPopWebActive extends AppCompatActivity {
 
         @JavascriptInterface //이게 있어야 웹에서 실행이 가능합니다.
         public void open(final String wepUrl) {
-            openWeb(wepUrl);
+            openWeb(ChildPopupWebActivity.class, wepUrl);
+        }
+
+        @JavascriptInterface //이게 있어야 웹에서 실행이 가능합니다.
+        public void openLink(final String subject, String linkUrl, String imageUrl) {
+            createDynamicLink(subject, linkUrl, imageUrl);
         }
 
         @JavascriptInterface //이게 있어야 웹에서 실행이 가능합니다.
@@ -236,8 +239,7 @@ public abstract class AbstractPopWebActive extends AppCompatActivity {
 
         @JavascriptInterface //이게 있어야 웹에서 실행이 가능합니다.
         public void callParntByChild(final String jsonData) {
-            try
-            {
+            try {
                 Intent resultIntent = new Intent();
                 resultIntent.putExtra("string", jsonData);
                 setResult(POPUP_REQUEST_CODE, resultIntent);
@@ -265,11 +267,11 @@ public abstract class AbstractPopWebActive extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 
-        Log.d("onActivityResult() ","resultCode = " + requestCode);
+        Log.d("onActivityResult() ", "resultCode = " + requestCode);
 
         switch (requestCode) {
             case POPUP_REQUEST_CODE:
-                String getString =  data.getStringExtra("string");
+                String getString = data.getStringExtra("string");
                 mPopWebView.loadUrl("javascript:callParntByChild('" + getString + "')");
 
                 break;
@@ -283,10 +285,10 @@ public abstract class AbstractPopWebActive extends AppCompatActivity {
                 }
                 break;
             case FILECHOOSER_LOLLIPOP_REQ_CODE:
-                Log.d("onActivityResult() ","FILECHOOSER_LOLLIPOP_REQ_CODE = " + FILECHOOSER_LOLLIPOP_REQ_CODE);
+                Log.d("onActivityResult() ", "FILECHOOSER_LOLLIPOP_REQ_CODE = " + FILECHOOSER_LOLLIPOP_REQ_CODE);
 
                 if (resultCode == RESULT_OK) {
-                    Log.d("onActivityResult() ","FILECHOOSER_LOLLIPOP_REQ_CODE 의 if문  RESULT_OK 안에 들어옴");
+                    Log.d("onActivityResult() ", "FILECHOOSER_LOLLIPOP_REQ_CODE 의 if문  RESULT_OK 안에 들어옴");
 
                     if (filePathCallbackLollipop == null) return;
                     if (data == null)
@@ -297,26 +299,26 @@ public abstract class AbstractPopWebActive extends AppCompatActivity {
                     filePathCallbackLollipop.onReceiveValue(WebChromeClient.FileChooserParams.parseResult(resultCode, data));
                     filePathCallbackLollipop = null;
                 } else {
-                    Log.d("onActivityResult() ","FILECHOOSER_LOLLIPOP_REQ_CODE 의 if문의 else문 안으로~");
-                    if (filePathCallbackLollipop != null)
-                    {   //  resultCode에 RESULT_OK가 들어오지 않으면 null 처리하지 한다.(이렇게 하지 않으면 다음부터 input 태그를 클릭해도 반응하지 않음)
+                    Log.d("onActivityResult() ", "FILECHOOSER_LOLLIPOP_REQ_CODE 의 if문의 else문 안으로~");
+                    if (filePathCallbackLollipop != null) {   //  resultCode에 RESULT_OK가 들어오지 않으면 null 처리하지 한다.(이렇게 하지 않으면 다음부터 input 태그를 클릭해도 반응하지 않음)
 
-                        Log.d("onActivityResult() ","FILECHOOSER_LOLLIPOP_REQ_CODE 의 if문의 filePathCallbackLollipop이 null이 아니면");
+                        Log.d("onActivityResult() ", "FILECHOOSER_LOLLIPOP_REQ_CODE 의 if문의 filePathCallbackLollipop이 null이 아니면");
                         filePathCallbackLollipop.onReceiveValue(null);
                         filePathCallbackLollipop = null;
                     }
 
-                    if (filePathCallbackNormal != null)
-                    {
+                    if (filePathCallbackNormal != null) {
                         filePathCallbackNormal.onReceiveValue(null);
                         filePathCallbackNormal = null;
                     }
                 }
                 break;
             default:
-
                 break;
+
         }
+
+        super.onActivityResult(requestCode, resultCode, data);
     }
 
     @Override
