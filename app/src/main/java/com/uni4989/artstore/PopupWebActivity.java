@@ -30,5 +30,4 @@ public class PopupWebActivity extends AbstractPopWebActive {
 
         mPopWebView.addJavascriptInterface(new AndroidBridge(), "BRIDGE");
     }
-
 }

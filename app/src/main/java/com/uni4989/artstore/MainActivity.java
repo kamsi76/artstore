@@ -4,7 +4,9 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.AlertDialog;
+import android.app.NotificationManager;
 import android.content.ClipData;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
@@ -20,7 +22,6 @@ import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
-import android.webkit.JavascriptInterface;
 import android.webkit.JsResult;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
@@ -30,20 +31,12 @@ import android.webkit.WebViewClient;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
-import com.google.android.gms.common.internal.service.Common;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
-import com.google.firebase.dynamiclinks.DynamicLink;
-import com.google.firebase.dynamiclinks.FirebaseDynamicLinks;
-import com.google.firebase.dynamiclinks.ShortDynamicLink;
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig;
 import com.google.firebase.remoteconfig.FirebaseRemoteConfigSettings;
@@ -70,25 +63,10 @@ public class MainActivity extends CommonActivity {
     private WebView mWebView;
     private ProgressBar progressBar;
 
-    private String token;
     private long latestVersion = 0;
 
     public void popWeb(String url) {
         super.openWeb(PopupWebActivity.class, url);
-    }
-
-    public class AndroidBridge {
-        @JavascriptInterface //이게 있어야 웹에서 실행이 가능합니다.
-        public void open(final String wepUrl) {
-            popWeb(wepUrl);
-        }
-
-        @JavascriptInterface //이게 있어야 웹에서 실행이 가능합니다.
-        public void openLink(final String subject, String linkUrl, String imageUrl) {
-            Log.d(TAG, "shouldOverrideUrlLoading: Link Click");
-            createDynamicLink(subject, linkUrl, imageUrl);
-        }
-
     }
 
     public void checkVersion() {
@@ -160,22 +138,6 @@ public class MainActivity extends CommonActivity {
         return phoneNum;
     }
 
-    public void getToken() {
-        try {
-
-            FirebaseInstanceId.getInstance().getInstanceId().addOnCompleteListener(task -> {
-                        if (!task.isSuccessful()) {
-                            Log.w(TAG, "getInstanceId Failed!!!", task.getException());
-                            return;
-                        }
-                        token = task.getResult().getToken();
-                    });
-
-        } catch (Exception e) {
-            Log.d(TAG, "onCreate: Firebase Setting 에러");
-        }
-    }
-
     /**
      * 권한 획득 여부 확인
      */
@@ -242,6 +204,22 @@ public class MainActivity extends CommonActivity {
         checkVerify();
         getToken();
 
+        //푸시를 통해 넘어온 항목을 확인하여 해당 화면으로 이동 또는 팝업을 띄운다.
+        Bundle extras = getIntent().getExtras();
+        if( extras != null ) {
+            String url = extras.getString("targetUrl");
+            popWeb(url);
+        }
+
+//        //데이터 저장
+//        String str = "나이 : 36세 성별 : 남자";
+//        PreferenceManager.setString(getApplicationContext(), "kim",str);
+//
+//        //데이터 호출
+//        String kim = PreferenceManager.getString(getApplicationContext(), "kim");
+//        Log.d(TAG, "onCreate: Kim - " + kim);
+//        Toast.makeText(getApplicationContext(), kim, Toast.LENGTH_SHORT).show();
+
         swipeRefreshLayout = findViewById(R.id.swiperefreshlayout);
         mWebView = findViewById(R.id.activity_main_webview);
 
@@ -257,7 +235,6 @@ public class MainActivity extends CommonActivity {
             /* 업데이트가 끝났음을 알림 */
             swipeRefreshLayout.setRefreshing(false);
         });
-
 
         mWebView.addJavascriptInterface(new AndroidBridge(), "BRIDGE");
 
