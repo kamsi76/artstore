@@ -48,7 +48,6 @@ public class CustomFirebaseMessagingService extends FirebaseMessagingService {
         String title = data.get("title");
         String message = data.get("message");
 
-
         final String CHANNEL_ID = "ChannerID";
         NotificationManager mManager = (NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -69,6 +68,10 @@ public class CustomFirebaseMessagingService extends FirebaseMessagingService {
         Intent intent;
         String targetUrl = data.get("targetUrl");
 
+        /*
+         * 백그라운드 또는 실행이 안되고 있는 경우는 Main을 띄우고
+         * 그렇지 않은 경우는 자식 팝업을 띄운다.
+         */
         if( isAppIsInBackground(getApplicationContext()) ) {
 
             intent = new Intent(this, MainActivity.class);
