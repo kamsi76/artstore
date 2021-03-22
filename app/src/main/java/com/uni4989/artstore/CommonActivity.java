@@ -119,7 +119,7 @@ public class CommonActivity extends AppCompatActivity {
 
     /**
      * 휴대폰 전화 번호 획득한다.
-     * @return
+     * @return 휴대번호
      */
     @SuppressLint({"MissingPermission", "HardwareIds"})
     public String getPhoneNumber() {

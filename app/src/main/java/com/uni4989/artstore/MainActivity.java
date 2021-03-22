@@ -356,6 +356,12 @@ public class MainActivity extends CommonActivity {
                 Log.i("TAG", "error : " + ex);
             }
         }
+
+        @JavascriptInterface
+        public void setting() {
+            Intent i = new Intent(MainActivity.this, SettingActivity.class);
+            startActivity(i);
+        }
     }
 
 }
