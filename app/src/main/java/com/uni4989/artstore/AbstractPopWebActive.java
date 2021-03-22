@@ -1,42 +1,25 @@
 package com.uni4989.artstore;
 
-import android.annotation.SuppressLint;
-import android.app.AlertDialog;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
-import android.os.Parcelable;
-import android.provider.MediaStore;
+
 import androidx.annotation.Nullable;
-import androidx.annotation.RequiresApi;
+
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.webkit.JavascriptInterface;
-import android.webkit.JsResult;
-import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.ProgressBar;
 
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.FileProvider;
-
-import java.io.File;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-
 public abstract class AbstractPopWebActive extends CommonActivity {
 
     private int layoutId;
-
-    protected WebView mPopWebView;
-    private ProgressBar progressBar;
 
     protected String mainUrl;
 
@@ -63,52 +46,17 @@ public abstract class AbstractPopWebActive extends CommonActivity {
          */
         createWeb();
 
-        WebSettings webSettings = mPopWebView.getSettings();
+        WebSettings webSettings = mWebView.getSettings();
         webSettings.setTextZoom(100);
 
-        mPopWebView.addJavascriptInterface(new AndroidBridge(), "BRIDGE");
+        mWebView.addJavascriptInterface(new AndroidBridge(), "BRIDGE");
 
-        mPopWebView.setWebViewClient(new WebViewClient() {
-            @Override
-            public boolean shouldOverrideUrlLoading(WebView view, String url) {
-                if(url.startsWith("tel:"))
-                {
-                    view.stopLoading();
-                    startActivity(new Intent(Intent.ACTION_DIAL, Uri.parse(url)));
-                    return false;
-                }
+        mWebView.setWebViewClient(new WebViewClientClass());
 
-                view.loadUrl(url);
-                return true;
-            }
-
-            @Override
-            public void onPageStarted(WebView view, String url, Bitmap favicon) {
-                progressBar.setVisibility(View.VISIBLE);
-
-                Log.d("", "케스트url" + mPopWebView.getUrl());
-
-                if (mPopWebView.getUrl().contains("jscall://")) {
-                    mPopWebView.stopLoading();
-                    progressBar.setVisibility(View.GONE);
-
-                    String tempUrl = mPopWebView.getUrl().substring(mPopWebView.getUrl().lastIndexOf("jscall://")+1);
-
-                    Log.d("", "케스트 jscall 호출" + tempUrl);
-                }
-            }
-
-            //웹페이지 로딩 종료시 호출
-            @Override
-            public void onPageFinished(WebView view, String url) {
-                progressBar.setVisibility(View.GONE);
-            }
-        });
-
-        mPopWebView.setWebChromeClient(new WebChromeClientClass());
+        mWebView.setWebChromeClient(new WebChromeClientClass());
 
         //메인 주소는 이쪽
-        mPopWebView.loadUrl(url);
+        mWebView.loadUrl(url);
 
         //progressbar
         progressBar = (ProgressBar) findViewById(R.id.web_progress);
@@ -125,7 +73,7 @@ public abstract class AbstractPopWebActive extends CommonActivity {
         switch (requestCode) {
             case POPUP_REQUEST_CODE:
                 String getString = data.getStringExtra("string");
-                mPopWebView.loadUrl("javascript:callParntByChild('" + getString + "')");
+                mWebView.loadUrl("javascript:callParntByChild('" + getString + "')");
 
                 break;
             case FILECHOOSER_NORMAL_REQ_CODE:
@@ -177,16 +125,14 @@ public abstract class AbstractPopWebActive extends CommonActivity {
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if (keyCode == KeyEvent.KEYCODE_BACK) {
-            if(!mPopWebView.getUrl().equals(mainUrl)) {
-                if (mPopWebView.canGoBack()) {
-                    mPopWebView.goBack();
-                    return false;
+            if(!mWebView.getUrl().equals(mainUrl)) {
+                if (mWebView.canGoBack()) {
+                    mWebView.goBack();
                 } else {
                     Intent resultIntent = new Intent();
                     resultIntent.putExtra("string", "");
                     setResult(POPUP_RESULT_CODE, resultIntent);
                     finish();
-                    return false;
                 }
             } else {
                 Intent resultIntent = new Intent();
@@ -196,10 +142,63 @@ public abstract class AbstractPopWebActive extends CommonActivity {
                 setResult(POPUP_RESULT_CODE, resultIntent);
 
                 finish();
-                return false;
             }
+            return false;
         }
 
         return super.onKeyDown(keyCode, event);
+    }
+
+    public class AndroidBridge {
+
+        @JavascriptInterface //이게 있어야 웹에서 실행이 가능합니다.
+        public void close() {
+            Intent resultIntent = new Intent();
+
+            resultIntent.putExtra("string", "");
+            setResult(POPUP_RESULT_CODE, resultIntent);
+
+            finish();
+        }
+
+        @JavascriptInterface //이게 있어야 웹에서 실행이 가능합니다.
+        public void open(final String wepUrl) {
+            openWeb(ChildPopupWebActivity.class, wepUrl);
+        }
+
+        @JavascriptInterface //이게 있어야 웹에서 실행이 가능합니다.
+        public void openLink(final String subject, String linkUrl, String imageUrl) {
+            createDynamicLink(subject, linkUrl, imageUrl);
+        }
+
+        @JavascriptInterface //이게 있어야 웹에서 실행이 가능합니다.
+        public void viewImage(final String prductIndx) {
+            openViewImage(prductIndx);
+        }
+
+        @JavascriptInterface //이게 있어야 웹에서 실행이 가능합니다.
+        public void callParntByChild(final String jsonData) {
+            try {
+                Intent resultIntent = new Intent();
+                resultIntent.putExtra("string", jsonData);
+                setResult(POPUP_REQUEST_CODE, resultIntent);
+            }
+            catch (Exception ex){
+                Log.i("TAG","error : " + ex);
+            }
+        }
+
+        @JavascriptInterface //이게 있어야 웹에서 실행이 가능합니다.
+        public void callParntByChildClose(final String jsonData) {
+            try {
+                Intent resultIntent = new Intent();
+                resultIntent.putExtra("string", jsonData);
+                setResult(POPUP_RESULT_CODE, resultIntent);
+
+                finish();
+            } catch (Exception ex) {
+                Log.i("TAG", "error : " + ex);
+            }
+        }
     }
 }

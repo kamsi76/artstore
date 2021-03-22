@@ -3,6 +3,8 @@ package com.uni4989.artstore;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.Intent;
+import android.content.pm.PackageInfo;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
@@ -10,11 +12,13 @@ import android.os.Parcelable;
 import android.provider.MediaStore;
 import android.telephony.TelephonyManager;
 import android.util.Log;
-import android.webkit.JavascriptInterface;
+import android.view.View;
 import android.webkit.JsResult;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
 import android.webkit.WebView;
+import android.webkit.WebViewClient;
+import android.widget.ProgressBar;
 
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
@@ -23,12 +27,22 @@ import androidx.core.content.FileProvider;
 import com.google.firebase.dynamiclinks.DynamicLink;
 import com.google.firebase.dynamiclinks.FirebaseDynamicLinks;
 import com.google.firebase.iid.FirebaseInstanceId;
+import com.google.firebase.remoteconfig.FirebaseRemoteConfig;
+import com.google.firebase.remoteconfig.FirebaseRemoteConfigSettings;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class CommonActivity extends AppCompatActivity {
+
+    private static final String TAG = "CommonActivity";
+
+    private FirebaseRemoteConfig remoteConfig;
+    private long latestVersion = 0;
+
+    protected WebView mWebView;
+    protected ProgressBar progressBar;
 
     protected final static int POPUP_REQUEST_CODE = 100;
     protected final static int POPUP_RESULT_CODE = 1;
@@ -42,6 +56,58 @@ public class CommonActivity extends AppCompatActivity {
     protected String token;
     protected Uri cameraImageUri = null;
 
+    /**
+     * Version 체크 후 업데이트 정보가 있으면
+     * 업데이트 여부를 확인하고 업데이트 처리한다.
+     */
+    public void checkVersion() {
+
+        remoteConfig = FirebaseRemoteConfig.getInstance();
+        FirebaseRemoteConfigSettings configSettings = new FirebaseRemoteConfigSettings.Builder()
+                //.setMinimumFetchIntervalInSeconds(3600)
+                .build();
+        remoteConfig.setConfigSettingsAsync(configSettings);
+
+        remoteConfig.fetchAndActivate()
+                .addOnCompleteListener(this, task -> {
+                    if (task.isSuccessful()) {
+                        latestVersion = remoteConfig.getLong("latest_version");
+
+                        try {
+                            long appVersion;
+                            PackageInfo pi = getPackageManager().getPackageInfo(getPackageName(), 0);
+                            if( Build.VERSION.SDK_INT > Build.VERSION_CODES.P) {
+                                appVersion = pi.getLongVersionCode();
+                            } else {
+                                appVersion = pi.versionCode;
+                            }
+
+                            if( latestVersion > appVersion ) {
+                                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                                builder.setTitle("업데이트 알림!");
+                                builder.setMessage("최신 업데이트가 있습니다.\n업데이트 받으시기 바랍니다.")
+                                        .setCancelable(false)
+                                        .setPositiveButton("업데이트", (dialog, which) -> {
+                                            Intent intent = new Intent(Intent.ACTION_VIEW);
+                                            intent.setData(Uri.parse("market://details?id=" + getPackageName()));
+                                            startActivity(intent);
+                                            dialog.cancel();
+                                            finish();
+                                        })
+                                        .create()
+                                        .show();
+                            }
+
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            Log.e("CommonActivity", "Version Check Fail!!!!!!!");
+                        }
+                    }
+                });
+
+
+    }
+
     public void openViewImage(String prductIndx) {}
 
     public void openWeb(Class clazz, String url) {
@@ -51,7 +117,10 @@ public class CommonActivity extends AppCompatActivity {
         overridePendingTransition(R.anim.fadein, R.anim.fadeout);
     }
 
-
+    /**
+     * 휴대폰 전화 번호 획득한다.
+     * @return
+     */
     @SuppressLint({"MissingPermission", "HardwareIds"})
     public String getPhoneNumber() {
         String phoneNum = "";
@@ -91,7 +160,6 @@ public class CommonActivity extends AppCompatActivity {
         }
     }
 
-
     public void createDynamicLink(final String subject, String PageURL, String ImgUrl){
         FirebaseDynamicLinks.getInstance().createDynamicLink()
                 .setLink(Uri.parse(PageURL))
@@ -121,63 +189,9 @@ public class CommonActivity extends AppCompatActivity {
                 });
     }
 
-
-    public class AndroidBridge {
-
-        @JavascriptInterface //이게 있어야 웹에서 실행이 가능합니다.
-        public void close() {
-            Intent resultIntent = new Intent();
-
-            resultIntent.putExtra("string", "");
-            setResult(POPUP_RESULT_CODE, resultIntent);
-
-            finish();
-        }
-
-        @JavascriptInterface //이게 있어야 웹에서 실행이 가능합니다.
-        public void open(final String wepUrl) {
-            openWeb(ChildPopupWebActivity.class, wepUrl);
-        }
-
-        @JavascriptInterface //이게 있어야 웹에서 실행이 가능합니다.
-        public void openLink(final String subject, String linkUrl, String imageUrl) {
-            createDynamicLink(subject, linkUrl, imageUrl);
-        }
-
-        @JavascriptInterface //이게 있어야 웹에서 실행이 가능합니다.
-        public void viewImage(final String prductIndx) {
-            openViewImage(prductIndx);
-        }
-
-        @JavascriptInterface //이게 있어야 웹에서 실행이 가능합니다.
-        public void callParntByChild(final String jsonData) {
-            try {
-                Intent resultIntent = new Intent();
-                resultIntent.putExtra("string", jsonData);
-                setResult(POPUP_REQUEST_CODE, resultIntent);
-            }
-            catch (Exception ex){
-                Log.i("TAG","error : " + ex);
-            }
-        }
-
-        @JavascriptInterface //이게 있어야 웹에서 실행이 가능합니다.
-        public void callParntByChildClose(final String jsonData) {
-            try {
-                Intent resultIntent = new Intent();
-                resultIntent.putExtra("string", jsonData);
-                setResult(POPUP_RESULT_CODE, resultIntent);
-
-                finish();
-            } catch (Exception ex) {
-                Log.i("TAG", "error : " + ex);
-            }
-        }
-    }
-
     // 카메라 기능 구현
     @SuppressLint("IntentReset")
-    private void runCamera(boolean _isCapture) {
+    protected void runCamera(boolean _isCapture) {
         Intent intentCamera = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         //intentCamera.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 
@@ -262,6 +276,57 @@ public class CommonActivity extends AppCompatActivity {
             Log.d("onShowFileChooser : " , String.valueOf(isCapture));
             runCamera(isCapture);
             return true;
+        }
+    }
+
+    protected class WebViewClientClass extends WebViewClient {
+        @Override
+        public boolean shouldOverrideUrlLoading(WebView view, String url) {
+
+            if (url.startsWith("tel:")) {
+                view.stopLoading();
+                startActivity(new Intent(Intent.ACTION_DIAL, Uri.parse(url)));
+                return false;
+            }
+
+            view.loadUrl(url);
+            return true;
+        }
+
+        @Override
+        public void onPageStarted(WebView view, String url, Bitmap favicon) {
+            progressBar.setVisibility(View.VISIBLE);
+
+            if (mWebView.getUrl().contains("jscall://")) {
+                mWebView.stopLoading();
+                progressBar.setVisibility(View.GONE);
+
+                String result = mWebView.getUrl().substring(mWebView.getUrl().lastIndexOf("(") + 2);
+                String tempUrl = result.substring(0, result.length() - 2);
+
+                Log.d("", "케스트 jscall 호출" + tempUrl);
+            }
+        }
+
+        //웹페이지 로딩 종료시 호출
+        @Override
+        public void onPageFinished(WebView view, String url) {
+            progressBar.setVisibility(View.GONE);
+
+            if (
+                    mWebView.getUrl().indexOf("t=login") > 0 ||
+                            mWebView.getUrl().indexOf("LoginCallback.php") > 0
+            ) {
+                mWebView.loadUrl("javascript:receiveToken('" + token + "')");
+            }
+
+            if (
+                    mWebView.getUrl().indexOf("t=member&s=registForm") > 0 ||
+                            mWebView.getUrl().indexOf("t=member&s=oauthForm") > 0 ||
+                            mWebView.getUrl().indexOf("t=login&s=find") > 0
+            ) {
+                mWebView.loadUrl("javascript:receivePhone('" + getPhoneNumber() + "')");
+            }
         }
     }
 }

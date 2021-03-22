@@ -5,8 +5,14 @@ import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.content.ComponentName;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
+import android.media.AudioAttributes;
+import android.media.AudioManager;
+import android.media.RingtoneManager;
+import android.net.Uri;
 import android.os.Build;
 import android.util.Log;
 
@@ -19,6 +25,7 @@ import com.uni4989.artstore.MainActivity;
 import com.uni4989.artstore.PopupWebActivity;
 import com.uni4989.artstore.R;
 
+import java.io.File;
 import java.util.List;
 import java.util.Map;
 
@@ -45,27 +52,9 @@ public class CustomFirebaseMessagingService extends FirebaseMessagingService {
     private void sendNotification(RemoteMessage remoteMessage) {
 
         Map<String, String> data = remoteMessage.getData();
-        String title = data.get("title");
-        String message = data.get("message");
 
-        final String CHANNEL_ID = "ChannerID";
-        NotificationManager mManager = (NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            final String CHANNEL_NAME = "ChannerName";
-            final String CHANNEL_DESCRIPTION = "ChannerDescription";
-            final int importance = NotificationManager.IMPORTANCE_HIGH;
-
-            // add in API level 26
-            NotificationChannel mChannel = new NotificationChannel(CHANNEL_ID, CHANNEL_NAME, importance);
-            mChannel.setDescription(CHANNEL_DESCRIPTION);
-            mChannel.enableLights(true);
-            mChannel.enableVibration(true);
-            mChannel.setVibrationPattern(new long[]{100, 200, 100, 200});
-            mChannel.setLockscreenVisibility(Notification.VISIBILITY_PRIVATE);
-            mManager.createNotificationChannel(mChannel);
-        }
-
-        Intent intent;
+        Intent intent = null;
+        String msgType = data.get("msgType");
         String targetUrl = data.get("targetUrl");
 
         /*
@@ -78,33 +67,83 @@ public class CustomFirebaseMessagingService extends FirebaseMessagingService {
             intent
                     .setAction(Intent.ACTION_MAIN)
                     .addCategory(Intent.CATEGORY_LAUNCHER)
-                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK
-                            | Intent.FLAG_ACTIVITY_CLEAR_TOP
-                            | Intent.FLAG_ACTIVITY_SINGLE_TOP
-                    );
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 
             if( !targetUrl.isEmpty() ) {
+                intent.putExtra("msgType", msgType);
                 intent.putExtra("targetUrl", targetUrl);
             }
 
         } else {
-            intent = new Intent(this, PopupWebActivity.class);
-            intent.putExtra("wepUrl", targetUrl);
+
+            if(
+                    msgType.isEmpty() || "chat".equals(msgType)
+            ) {
+
+                intent = new Intent(this, MainActivity.class);
+                intent
+                      //  .setAction(Intent.ACTION_MAIN)
+                       // .addCategory(Intent.CATEGORY_LAUNCHER)
+                        .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+
+                if( !targetUrl.isEmpty() ) {
+                    intent.putExtra("msgType", msgType);
+                    intent.putExtra("targetUrl", targetUrl);
+                }
+
+            } else {
+
+                if( "detail".equals(msgType) ) {
+                    intent = new Intent(this, PopupWebActivity.class);
+                    intent.putExtra("wepUrl", targetUrl);
+                }
+            }
         }
 
-        PendingIntent pendingIntent = PendingIntent.getActivity(getApplicationContext(), 0, intent,
+        PendingIntent pendingIntent = PendingIntent.getActivity(getBaseContext(), 0, intent,
                PendingIntent.FLAG_UPDATE_CURRENT);
 
+        String title = data.get("title");
+        String message = data.get("message");
+
+        Uri sound = Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.notifysnd);
+
+        final String CHANNEL_ID = "UNIART";
+        NotificationManager mManager = (NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            final String CHANNEL_NAME = "UNIARTCHANNER";
+            final String CHANNEL_DESCRIPTION = "UNIARTCHANNERDescription";
+            final int importance = NotificationManager.IMPORTANCE_HIGH;
+
+            // add in API level 26
+            NotificationChannel mChannel = new NotificationChannel(CHANNEL_ID, CHANNEL_NAME, importance);
+            mChannel.setDescription(CHANNEL_DESCRIPTION);
+            mChannel.enableLights(true);
+            mChannel.enableVibration(true);
+            mChannel.setVibrationPattern(new long[]{100, 200, 100, 200});
+            mChannel.setLockscreenVisibility(Notification.VISIBILITY_PRIVATE);
+
+            AudioAttributes audioAttributes = new AudioAttributes.Builder()
+                    .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                    .setUsage(AudioAttributes.USAGE_ALARM)
+                    .build();
+
+            mChannel.setSound(sound, audioAttributes);
+
+            mManager.createNotificationChannel(mChannel);
+        }
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID);
-        builder.setSmallIcon(R.drawable.ic_launcher_background);
-        builder.setAutoCancel(true);
-        builder.setDefaults(Notification.DEFAULT_ALL);
-        builder.setWhen(System.currentTimeMillis());
-        builder.setSmallIcon(R.mipmap.ic_launcher);
-        builder.setContentTitle(title);
-        builder.setContentText(message);
-        builder.setContentIntent(pendingIntent);
+        builder.setSmallIcon(R.drawable.ic_launcher_background)
+                .setAutoCancel(true)
+                .setDefaults(Notification.DEFAULT_ALL)
+                .setWhen(System.currentTimeMillis())
+                .setSmallIcon(R.mipmap.ic_launcher)
+                .setContentTitle(title)
+                .setContentText(message)
+                .setContentIntent(pendingIntent)
+                .setSound(sound);
+
         if(Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
             builder.setContentTitle(title);
             builder.setVibrate(new long[]{500, 500});

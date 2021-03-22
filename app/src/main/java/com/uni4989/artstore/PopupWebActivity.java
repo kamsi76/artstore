@@ -21,13 +21,13 @@ public class PopupWebActivity extends AbstractPopWebActive {
     @Override
     public void createWeb() {
 
-        mPopWebView = (WebView) findViewById(R.id.activity_popup_webview);
+        mWebView = (WebView) findViewById(R.id.activity_popup_webview);
 
-        WebSettings webSettings = mPopWebView.getSettings();
+        WebSettings webSettings = mWebView.getSettings();
         webSettings.setJavaScriptEnabled(true);
         webSettings.setJavaScriptCanOpenWindowsAutomatically(true);
         webSettings.setSupportMultipleWindows(true);
 
-        mPopWebView.addJavascriptInterface(new AndroidBridge(), "BRIDGE");
+        mWebView.addJavascriptInterface(new AndroidBridge(), "BRIDGE");
     }
 }
