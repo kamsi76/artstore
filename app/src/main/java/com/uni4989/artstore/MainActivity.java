@@ -22,6 +22,8 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
+import com.uni4989.artstore.preference.SettingActivity;
+
 public class MainActivity extends CommonActivity {
 
     private static final String TAG = "MainActivity";

@@ -1,11 +1,36 @@
-<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto">
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <PreferenceCategory app:title="@string/messages_header">
+    <PreferenceCategory
+        app:iconSpaceReserved="false"
+        app:title="@string/alarm_header">
 
         <SwitchPreference
-            app:key="key_switch_on"
-            app:title="Screen on"
-            app:defaultValue="false"/>
+            app:defaultValue="false"
+            app:iconSpaceReserved="false"
+            app:key="key_notification"
+            app:title="@string/notification_title" />
+
+        <SwitchPreference
+            app:dependency="key_notification"
+            app:defaultValue="false"
+            app:iconSpaceReserved="false"
+            app:key="key_disturb"
+            app:title="@string/disturb_title" />
+
+        <EditTextPreference
+            app:key="key_editText"
+            app:summary="This allows you to enter a string"
+            app:defaultValue="Nothing"
+            app:title="Edit This Text"
+            app:iconSpaceReserved="false"
+            app:singleLineTitle="true"
+            app:useSimpleSummaryProvider="true" />
+
+        <com.uni4989.artstore.preference.TimepickerPreference
+            app:key="key_disturb_hour"
+            app:title="time"
+            app:iconSpaceReserved="false" />
 
     </PreferenceCategory>
 
@@ -13,6 +38,7 @@
 
         <SwitchPreferenceCompat
             app:key="sync"
+            app:iconSpaceReserved="false"
             app:title="@string/sync_title" />
 
         <SwitchPreferenceCompat

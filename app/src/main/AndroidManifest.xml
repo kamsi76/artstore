@@ -32,7 +32,6 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Artstore"
         android:usesCleartextTraffic="true">
-        <activity android:name=".SettingActivity"></activity>
 
         <meta-data
             android:name="com.google.android.actions"
@@ -71,6 +70,8 @@
         </activity>
         <activity android:name=".ChildPopupWebActivity" />
         <activity android:name=".PopupWebActivity" />
+
+        <activity android:name=".preference.SettingActivity" />
 
         <service android:name=".firebase.CustomFirebaseMessagingService">
             <intent-filter>
