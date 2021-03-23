@@ -7,9 +7,6 @@ import android.widget.TimePicker;
 import androidx.preference.DialogPreference;
 import androidx.preference.Preference;
 
-import java.text.DateFormat;
-import java.util.Date;
-
 public class TimepickerPreference extends DialogPreference implements Preference.OnPreferenceChangeListener {
 
     private int mHour = 0;
