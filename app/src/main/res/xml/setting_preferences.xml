@@ -5,6 +5,11 @@
         app:iconSpaceReserved="false"
         app:title="@string/alarm_header">
 
+        <Preference
+            android:title="Username"
+            android:summary="rishabhp"
+            android:key="username" />
+
         <SwitchPreference
             app:defaultValue="false"
             app:iconSpaceReserved="false"
@@ -18,19 +23,45 @@
             app:key="key_disturb"
             app:title="@string/disturb_title" />
 
-        <EditTextPreference
-            app:key="key_editText"
-            app:summary="This allows you to enter a string"
-            app:defaultValue="Nothing"
-            app:title="Edit This Text"
+        <com.uni4989.artstore.preference.TimepickerPreference
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="0dp"
+            android:layout="@layout/custom_timepicker_preference"
+            app:dependency="key_disturb"
             app:iconSpaceReserved="false"
-            app:singleLineTitle="true"
-            app:useSimpleSummaryProvider="true" />
+            app:key="key_start_disturb_time"
+            app:title="시작시간" />
 
         <com.uni4989.artstore.preference.TimepickerPreference
-            app:key="key_disturb_hour"
-            app:title="time"
-            app:iconSpaceReserved="false" />
+            app:dependency="key_disturb"
+            app:key="key_end_disturb_time"
+            app:title="종료시간"
+            android:layout="@layout/custom_timepicker_preference"/>
+
+        <!--<Preference
+            android:title="이건 몰까요?">
+            <intent android:action="android.intent.action.VIEW"
+                android:data="http://codepath.com/" />
+        </Preference>-->
+
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:summary="Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry’s."
+        android:title="Crash report">
+
+        <SwitchPreference
+            android:defaultValue="true"
+            android:key="pref_key_crashlytics"
+            android:layout="@layout/custom_switch_preference"
+            android:title="Sending usage data" />
+
+        <SwitchPreference
+            android:defaultValue="true"
+            android:key="pref_key_crashlytics"
+            android:layout="@layout/custom_switch_preference"
+            android:title="Sending usage data" />
 
     </PreferenceCategory>
 

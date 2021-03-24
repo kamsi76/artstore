@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:clickable="false"
+        android:focusable="false"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp"
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp"
+        >
+
+        <!--  Overriding android ids results automatic persistence / setting of title -->
+        <TextView
+            android:id="@android:id/title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:fontFamily="sans-serif-medium"
+            android:paddingLeft="36dp"
+            android:textColor="@drawable/preference_color"
+            android:textSize="14sp"
+            android:textStyle="normal"
+            tools:text="Title" />
+
+        <TextView
+            android:id="@android:id/summary"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:fontFamily="sans-serif-medium"
+            android:textColor="@drawable/preference_color"
+            android:textSize="14sp"
+            android:textStyle="normal"
+            android:layout_alignParentRight="true"
+            tools:text="Sumery" />
+
+    </RelativeLayout>
+</LinearLayout>

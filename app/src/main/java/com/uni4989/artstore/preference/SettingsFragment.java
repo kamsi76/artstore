@@ -31,13 +31,6 @@ public class SettingsFragment extends PreferenceFragmentCompat {
 
         Log.d(TAG, "onCreatePreferences: " + rootKey);
 
-        Log.d(TAG, "onCreatePreferences: " + findPreference("key_editText"));
-        EditTextPreference editText = findPreference("key_editText");
-        editText.setOnPreferenceClickListener(preference -> {
-            EditTextPreference editTextPreference = (EditTextPreference) preference;
-            Log.d(TAG, "onPreferenceClick: " + editTextPreference.getText());
-            return false;
-        });
     }
 
 }

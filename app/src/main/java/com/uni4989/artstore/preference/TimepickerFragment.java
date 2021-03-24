@@ -3,14 +3,14 @@ package com.uni4989.artstore.preference;
 import android.app.Dialog;
 import android.app.TimePickerDialog;
 import android.os.Bundle;
-import android.text.format.DateFormat;
-import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
 import android.widget.TimePicker;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.preference.PreferenceDialogFragmentCompat;
-
-import java.util.Calendar;
 
 public class TimepickerFragment extends PreferenceDialogFragmentCompat implements TimePickerDialog.OnTimeSetListener {
 
@@ -29,29 +29,19 @@ public class TimepickerFragment extends PreferenceDialogFragmentCompat implement
     @NonNull
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
-        final Calendar c = Calendar.getInstance();
-        int hour = c.get(Calendar.HOUR_OF_DAY);
-        int minute = c.get(Calendar.MINUTE);
-
-        return new TimePickerDialog(getActivity(), this, hour, minute, DateFormat.is24HourFormat(getActivity()));
+        TimepickerPreference preference = (TimepickerPreference)getPreference();
+        return new TimePickerDialog(getActivity(), this, preference.getHours(), preference.getMins(), preference.isDialog24Hours());
     }
 
     @Override
     public void onDialogClosed(boolean positiveResult) {
-        if (positiveResult) {
-            getTimepickerPreference().setValue(mValue);
-        }
-    }
-
-    private TimepickerPreference getTimepickerPreference() {
-        return (TimepickerPreference) getPreference();
     }
 
     @Override
     public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
-        Log.d(TAG, "onTimeSet: " + hourOfDay);
-        Log.d(TAG, "onTimeSet: " + minute);
-        mValue = hourOfDay + ":" + minute;
-        getTimepickerPreference().setValue(mValue);
+        TimepickerPreference preference = (TimepickerPreference) getPreference();
+        if (preference.callChangeListener(TimepickerPreference.calculateValue(hourOfDay, minute))) {
+            preference.setValue(hourOfDay, minute);
+        }
     }
 }
