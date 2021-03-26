@@ -17,17 +17,18 @@
     <!-- Alarm Preferences -->
     <string name="notification_title">푸시 알림 설정</string>
     <string name="disturb_title">방해금지 시간설정</string>
+    <string name="start_time">시작시간</string>
+    <string name="end_time">종료시간</string>
+    <string name="vibration_title">진동</string>
 
-    <!-- Messages Preferences -->
-    <string name="signature_title">Your signature</string>
-    <string name="reply_title">Default reply action</string>
+    <!-- Service Preferences -->
+    <string name="service_category">서비스 정보</string>
+    <string name="oppolicy_title">운영정책</string>
+    <string name="term_title">이용약관</string>
+    <string name="privacy_title">개인정보 처리방침</string>
 
-    <!-- Sync Preferences -->
-    <string name="sync_title">Sync email periodically</string>
-    <string name="attachment_title">Download incoming attachments</string>
-    <string name="attachment_summary_on">Automatically download attachments for incoming emails
-    </string>
-    <string name="attachment_summary_off">Only download attachments when manually requested</string>
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <!-- Etc Preferences -->
+    <string name="etc_category">기타</string>
+    <string name="logout_title">로그아웃</string>
+    <string name="secession_title">탈퇴하기</string>
 </resources>

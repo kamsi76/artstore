@@ -15,6 +15,7 @@
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.CAMERA2" />
     <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY" />
+    <uses-permission android:name = "android.permission.VIBRATE"/>
 
     <uses-feature
         android:name="android.hardware.camera"
@@ -32,7 +33,6 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Artstore"
         android:usesCleartextTraffic="true">
-        <activity android:name=".preference.DisturbActivity" />
 
         <meta-data
             android:name="com.google.android.actions"

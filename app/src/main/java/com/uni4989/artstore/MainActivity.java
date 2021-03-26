@@ -5,7 +5,9 @@ import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.AlertDialog;
 import android.content.ClipData;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
@@ -20,6 +22,7 @@ import android.widget.Toast;
 
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.preference.PreferenceManager;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.uni4989.artstore.preference.SettingActivity;
@@ -27,6 +30,7 @@ import com.uni4989.artstore.preference.SettingActivity;
 public class MainActivity extends CommonActivity {
 
     private static final String TAG = "MainActivity";
+    protected final static int SETTING_REQUEST_CODE = 900;
 
     private SwipeRefreshLayout swipeRefreshLayout;
 
@@ -165,6 +169,16 @@ public class MainActivity extends CommonActivity {
         Log.d("onActivityResult() ","resultCode = " + requestCode);
 
         switch (requestCode) {
+            case SETTING_REQUEST_CODE:
+                if( data != null ) {
+                    String actionType = data.getStringExtra("actionType");
+                    if ("logout".equals(actionType)) {
+                        mWebView.loadUrl(getString(R.string.default_url) + "/sources/Controller/Login.php?exec=logout");
+                    } else if ("secession".equals(actionType)) {
+                        mWebView.loadUrl(getString(R.string.default_url) + "/sources/Controller/Login.php?exec=logout");
+                    }
+                }
+                break;
             case POPUP_REQUEST_CODE:
                 if( data != null ) {
                     String getString = data.getStringExtra("string");
@@ -265,8 +279,6 @@ public class MainActivity extends CommonActivity {
                         });
                 builder.show();
 
-            } else if (mWebView.getUrl().indexOf("t=member&s=oauthForm") > 0) {
-                mWebView.loadUrl(getString(R.string.default_url) + "/?t=login");
             } else if (mWebView.canGoBack()) {
                 mWebView.goBack();
                 /*
@@ -362,7 +374,7 @@ public class MainActivity extends CommonActivity {
         @JavascriptInterface
         public void setting() {
             Intent i = new Intent(MainActivity.this, SettingActivity.class);
-            startActivity(i);
+            startActivityForResult(i, SETTING_REQUEST_CODE);
         }
     }
 

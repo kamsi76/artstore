@@ -51,6 +51,18 @@ public class TimepickerPreference extends DialogPreference {
         defaultMins = typedArray.getInt(R.styleable.TimePickerPreference_defaultMins, -1);
         if (defaultHours >= 0 && defaultMins >= 0) {
             setDefaultValue(calculateValue(defaultHours, defaultMins));
+        } else {
+            if( attrs != null ) {
+                String strHours = attrs.getAttributeValue(null, "defaultHours");
+                String strMins = attrs.getAttributeValue(null, "defaultMins");
+
+                if( strHours != null && strMins != null) {
+                    defaultHours = Integer.parseInt(strHours);
+                    defaultMins = Integer.parseInt(strMins);
+
+                    setDefaultValue(calculateValue(defaultHours, defaultMins));
+                }
+            }
         }
         dialogTimeFormat = typedArray.getInt(R.styleable.TimePickerPreference_dialogTimeFormat, 0);
         typedArray.recycle();

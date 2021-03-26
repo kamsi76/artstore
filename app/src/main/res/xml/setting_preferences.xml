@@ -5,39 +5,41 @@
         app:iconSpaceReserved="false"
         app:title="@string/alarm_header">
 
-        <Preference
-            android:title="Username"
-            android:summary="rishabhp"
-            android:key="username" />
-
         <SwitchPreference
-            app:defaultValue="false"
+            app:defaultValue="true"
             app:iconSpaceReserved="false"
-            app:key="key_notification"
+            app:key="pref_notification"
             app:title="@string/notification_title" />
 
         <SwitchPreference
-            app:dependency="key_notification"
+            app:dependency="pref_notification"
             app:defaultValue="false"
             app:iconSpaceReserved="false"
-            app:key="key_disturb"
+            app:key="pref_disturb"
             app:title="@string/disturb_title" />
 
         <com.uni4989.artstore.preference.TimepickerPreference
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="0dp"
             android:layout="@layout/custom_timepicker_preference"
-            app:dependency="key_disturb"
-            app:iconSpaceReserved="false"
-            app:key="key_start_disturb_time"
-            app:title="시작시간" />
+            app:dependency="pref_disturb"
+            app:key="pref_start_disturb_time"
+            defaultHours="21"
+            defaultMins="0"
+            app:title="@string/start_time" />
 
         <com.uni4989.artstore.preference.TimepickerPreference
-            app:dependency="key_disturb"
-            app:key="key_end_disturb_time"
-            app:title="종료시간"
+            app:dependency="pref_disturb"
+            app:key="pref_end_disturb_time"
+            app:title="@string/end_time"
+            defaultHours="7"
+            defaultMins="0"
             android:layout="@layout/custom_timepicker_preference"/>
+
+        <SwitchPreference
+            app:dependency="pref_notification"
+            app:defaultValue="false"
+            app:iconSpaceReserved="false"
+            app:key="pref_vibration"
+            app:title="@string/vibration_title" />
 
         <!--<Preference
             android:title="이건 몰까요?">
@@ -48,36 +50,47 @@
     </PreferenceCategory>
 
     <PreferenceCategory
-        android:summary="Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry’s."
-        android:title="Crash report">
+        app:iconSpaceReserved="false"
+        app:title="@string/service_category">
 
-        <SwitchPreference
-            android:defaultValue="true"
-            android:key="pref_key_crashlytics"
-            android:layout="@layout/custom_switch_preference"
-            android:title="Sending usage data" />
 
-        <SwitchPreference
-            android:defaultValue="true"
-            android:key="pref_key_crashlytics"
-            android:layout="@layout/custom_switch_preference"
-            android:title="Sending usage data" />
+        <Preference
+            app:defaultValue="true"
+            app:key="pref_oppolicy"
+            app:iconSpaceReserved="false"
+            app:title="@string/oppolicy_title" />
+
+        <Preference
+            app:defaultValue="true"
+            app:key="pref_term"
+            app:iconSpaceReserved="false"
+            app:title="@string/term_title" />
+
+        <Preference
+            app:defaultValue="true"
+            app:key="pref_privacy"
+            app:iconSpaceReserved="false"
+            app:title="@string/privacy_title" />
+
 
     </PreferenceCategory>
 
-    <PreferenceCategory app:title="@string/sync_header">
+    <PreferenceCategory
+        app:iconSpaceReserved="false"
+        app:title="@string/etc_category">
 
-        <SwitchPreferenceCompat
-            app:key="sync"
+        <Preference
+            app:defaultValue="true"
+            app:key="pref_logout"
             app:iconSpaceReserved="false"
-            app:title="@string/sync_title" />
+            app:title="@string/logout_title" />
 
-        <SwitchPreferenceCompat
-            app:dependency="sync"
-            app:key="attachment"
-            app:summaryOff="@string/attachment_summary_off"
-            app:summaryOn="@string/attachment_summary_on"
-            app:title="@string/attachment_title" />
+        <Preference
+            app:defaultValue="true"
+            app:key="pref_secession"
+            app:iconSpaceReserved="false"
+            app:title="@string/secession_title" />
+
 
     </PreferenceCategory>
 

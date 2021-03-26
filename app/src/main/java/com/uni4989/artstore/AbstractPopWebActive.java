@@ -27,6 +27,8 @@ public abstract class AbstractPopWebActive extends CommonActivity {
     protected final static int POPUP_RESULT_CODE = 1;
 
     protected final static int VIEWIMG_REQUEST_CODE = 200;
+    protected final static int SETTING_REQUEST_CODE = 900;
+
 
     public AbstractPopWebActive(int layoutId) {
         this.layoutId = layoutId;
@@ -36,6 +38,8 @@ public abstract class AbstractPopWebActive extends CommonActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(layoutId);
+
+        getToken();
 
         Bundle extras = getIntent().getExtras();
         String url =  getString(R.string.default_url) + extras.getString("wepUrl");
@@ -125,7 +129,12 @@ public abstract class AbstractPopWebActive extends CommonActivity {
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if (keyCode == KeyEvent.KEYCODE_BACK) {
-            if(!mWebView.getUrl().equals(mainUrl)) {
+
+            if (mWebView.getUrl().indexOf("t=login") > 0) {
+                finish();
+            } else if (mWebView.getUrl().indexOf("t=member&s=oauthForm") > 0) {
+                mWebView.loadUrl(getString(R.string.default_url) + "/content.php?t=login");
+            } else if(!mWebView.getUrl().equals(mainUrl)) {
                 if (mWebView.canGoBack()) {
                     mWebView.goBack();
                 } else {
@@ -194,6 +203,19 @@ public abstract class AbstractPopWebActive extends CommonActivity {
                 Intent resultIntent = new Intent();
                 resultIntent.putExtra("string", jsonData);
                 setResult(POPUP_RESULT_CODE, resultIntent);
+
+                finish();
+            } catch (Exception ex) {
+                Log.i("TAG", "error : " + ex);
+            }
+        }
+
+        @JavascriptInterface //이게 있어야 웹에서 실행이 가능합니다.
+        public void requestSecession() {
+            try {
+                Intent resultIntent = new Intent();
+                resultIntent.putExtra("actionType", "secession");
+                setResult(SETTING_REQUEST_CODE, resultIntent);
 
                 finish();
             } catch (Exception ex) {

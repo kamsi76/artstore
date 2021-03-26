@@ -8,16 +8,37 @@
         <!-- Customize your theme here. -->
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
+
+        <item name="android:buttonStyle">@style/InfinitySansButtonStyle</item>
+        <item name="android:editTextStyle">@style/InfinitySansEditTextStyle</item>
+        <item name="android:radioButtonStyle">@style/InfinitySansRadioButtonStyle</item>
+        <item name="android:checkboxStyle">@style/InfinitySansCheckboxStyle</item>
+        <item name="android:textViewStyle">@style/InfinitySansTextViewStyle</item>
+        <item name="android:preferenceStyle">@style/InfinitySansTextViewStyle</item>
     </style>
 
     <style name="Theme.Artstore.Fullscreen" parent="Theme.Artstore">
         <item name="android:actionBarStyle">@style/Widget.Theme.Artstore.ActionBar.Fullscreen</item>
         <item name="android:windowActionBarOverlay">true</item>
         <item name="android:windowBackground">@null</item>
+
+        <item name="android:buttonStyle">@style/InfinitySansButtonStyle</item>
+        <item name="android:editTextStyle">@style/InfinitySansEditTextStyle</item>
+        <item name="android:radioButtonStyle">@style/InfinitySansRadioButtonStyle</item>
+        <item name="android:checkboxStyle">@style/InfinitySansCheckboxStyle</item>
+        <item name="android:textViewStyle">@style/InfinitySansTextViewStyle</item>
+        <item name="android:preferenceStyle">@style/InfinitySansTextViewStyle</item>
     </style>
 
     <style name="ThemeOverlay.Artstore.FullscreenContainer" parent="">
         <item name="fullscreenBackgroundColor">@color/light_blue_600</item>
         <item name="fullscreenTextColor">@color/light_blue_A200</item>
+
+        <item name="android:buttonStyle">@style/InfinitySansButtonStyle</item>
+        <item name="android:editTextStyle">@style/InfinitySansEditTextStyle</item>
+        <item name="android:radioButtonStyle">@style/InfinitySansRadioButtonStyle</item>
+        <item name="android:checkboxStyle">@style/InfinitySansCheckboxStyle</item>
+        <item name="android:textViewStyle">@style/InfinitySansTextViewStyle</item>
+        <item name="android:preferenceStyle">@style/InfinitySansTextViewStyle</item>
     </style>
 </resources>
