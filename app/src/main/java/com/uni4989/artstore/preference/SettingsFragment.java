@@ -2,19 +2,15 @@ package com.uni4989.artstore.preference;
 
 import android.app.AlertDialog;
 import android.content.Intent;
-import android.net.Uri;
+import android.content.DialogInterface;
 import android.os.Bundle;
-import android.provider.Settings;
-import android.util.Log;
 
 import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
-import androidx.preference.EditTextPreference;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.SwitchPreference;
 
-import com.uni4989.artstore.MainActivity;
 import com.uni4989.artstore.PopupWebActivity;
 import com.uni4989.artstore.R;
 
@@ -100,6 +96,10 @@ public class SettingsFragment extends PreferenceFragmentCompat {
                 getActivity().setResult(SETTING_REQUEST_CODE, resultIntent);
                 getActivity().finish();
             });
+
+            builder.setNegativeButton("아니오", (dialog, which) -> {});
+
+
             builder.show();
 
             return false;

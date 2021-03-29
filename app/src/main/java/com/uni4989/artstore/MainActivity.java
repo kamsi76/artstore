@@ -25,6 +25,7 @@ import androidx.core.content.ContextCompat;
 import androidx.preference.PreferenceManager;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
+import com.uni4989.artstore.preference.CustomPreferenceManager;
 import com.uni4989.artstore.preference.SettingActivity;
 
 public class MainActivity extends CommonActivity {
@@ -107,6 +108,16 @@ public class MainActivity extends CommonActivity {
         }
     }
 
+    private void setting() {
+        boolean firstActiveApp = CustomPreferenceManager.getBoolean(this, "firstActiveApp");
+        if( !firstActiveApp ) {
+
+            //환경에서 Notifi 받는 것으로 설정
+            CustomPreferenceManager.setBoolean(this, "pref_notification", true);
+            CustomPreferenceManager.setBoolean(this, "firstActiveApp", true);
+        }
+    }
+
     @SuppressLint("SetJavaScriptEnabled")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -116,15 +127,7 @@ public class MainActivity extends CommonActivity {
         checkVersion();
         checkVerify();
         getToken();
-
-//        //데이터 저장
-//        String str = "나이 : 36세 성별 : 남자";
-//        PreferenceManager.setString(getApplicationContext(), "kim",str);
-//
-//        //데이터 호출
-//        String kim = PreferenceManager.getString(getApplicationContext(), "kim");
-//        Log.d(TAG, "onCreate: Kim - " + kim);
-//        Toast.makeText(getApplicationContext(), kim, Toast.LENGTH_SHORT).show();
+        setting();
 
         swipeRefreshLayout = findViewById(R.id.swiperefreshlayout);
         mWebView = findViewById(R.id.activity_main_webview);
@@ -263,43 +266,8 @@ public class MainActivity extends CommonActivity {
         Log.d(TAG, "이름" + mWebView.getUrl());
 
         if (keyCode == KeyEvent.KEYCODE_BACK) {
-            if (mWebView.getUrl().indexOf("t=prduct&s=post") > 0) {
 
-                AlertDialog.Builder builder = new AlertDialog.Builder(this);
-                builder.setTitle("");
-                builder.setMessage("등록화면에서 나가시겠습니까?");
-                builder.setPositiveButton("확인",
-                        (dialog, which) -> {
-                            //Toast.makeText(getApplicationContext(),"예를 선택했습니다.",Toast.LENGTH_LONG).show();
-                            mWebView.goBack();
-                        });
-                builder.setNegativeButton("취소",
-                        (dialog, which) -> {
-                            //Toast.makeText(getApplicationContext(),"예를 선택했습니다.",Toast.LENGTH_LONG).show();
-                        });
-                builder.show();
-
-            } else if (mWebView.canGoBack()) {
-                mWebView.goBack();
-                /*
-                else {
-                    AlertDialog.Builder builder = new AlertDialog.Builder(this);
-                    builder.setTitle("");
-                    builder.setMessage(getString(R.string.app_name) + " 를\n종료하시겠습니까?.");
-                    builder.setPositiveButton("확인",
-                            (dialog, which) -> {
-                                //Toast.makeText(getApplicationContext(),"예를 선택했습니다.",Toast.LENGTH_LONG).show();
-                                finish();
-                            });
-                    builder.setNegativeButton("취소",
-                            (dialog, which) -> {
-                                //Toast.makeText(getApplicationContext(),"예를 선택했습니다.",Toast.LENGTH_LONG).show();
-                            });
-                    builder.show();
-                    return false;
-                }
-                */
-            } else {
+            if( mWebView.getUrl().equals(getString(R.string.default_url)) ) {
 
                 long curTime = System.currentTimeMillis();
                 long gapTime = curTime - backBtnTime;
@@ -310,6 +278,57 @@ public class MainActivity extends CommonActivity {
                 } else {
                     backBtnTime = curTime;
                     Toast.makeText(this, "한번 더 누르면 종료됩니다.", Toast.LENGTH_SHORT).show();
+                }
+
+            } else {
+                if (mWebView.getUrl().indexOf("t=prduct&s=post") > 0) {
+
+                    AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                    builder.setTitle("");
+                    builder.setMessage("등록화면에서 나가시겠습니까?");
+                    builder.setPositiveButton("확인",
+                            (dialog, which) -> {
+                                //Toast.makeText(getApplicationContext(),"예를 선택했습니다.",Toast.LENGTH_LONG).show();
+                                mWebView.goBack();
+                            });
+                    builder.setNegativeButton("취소",
+                            (dialog, which) -> {
+                                //Toast.makeText(getApplicationContext(),"예를 선택했습니다.",Toast.LENGTH_LONG).show();
+                            });
+                    builder.show();
+
+                } else if (mWebView.canGoBack()) {
+                    mWebView.goBack();
+                    /*
+                    else {
+                        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                        builder.setTitle("");
+                        builder.setMessage(getString(R.string.app_name) + " 를\n종료하시겠습니까?.");
+                        builder.setPositiveButton("확인",
+                                (dialog, which) -> {
+                                    //Toast.makeText(getApplicationContext(),"예를 선택했습니다.",Toast.LENGTH_LONG).show();
+                                    finish();
+                                });
+                        builder.setNegativeButton("취소",
+                                (dialog, which) -> {
+                                    //Toast.makeText(getApplicationContext(),"예를 선택했습니다.",Toast.LENGTH_LONG).show();
+                                });
+                        builder.show();
+                        return false;
+                    }
+                    */
+                } else {
+
+                    long curTime = System.currentTimeMillis();
+                    long gapTime = curTime - backBtnTime;
+
+                    if (0 < gapTime && 2000 >= gapTime) {
+                        //super.onBackPressed();
+                        finish();
+                    } else {
+                        backBtnTime = curTime;
+                        Toast.makeText(this, "한번 더 누르면 종료됩니다.", Toast.LENGTH_SHORT).show();
+                    }
                 }
             }
 

@@ -63,6 +63,7 @@ public class CustomFirebaseMessagingService extends FirebaseMessagingService {
         Intent intent = null;
         String msgType = data.get("msgType");
         String targetUrl = data.get("targetUrl");
+        String messageCount = data.get("messageCount");
 
         /*
          * 백그라운드 또는 실행이 안되고 있는 경우는 Main을 띄우고
@@ -115,9 +116,6 @@ public class CustomFirebaseMessagingService extends FirebaseMessagingService {
 
         Uri sound = Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.notifysnd);
 
-        //설정에 진동여부 확인
-        boolean prefVibration = CustomPreferenceManager.getBoolean(this, "pref_vibration");
-
         final String CHANNEL_ID = "UNIART";
         NotificationManager mManager = (NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -130,18 +128,13 @@ public class CustomFirebaseMessagingService extends FirebaseMessagingService {
             mChannel.setDescription(CHANNEL_DESCRIPTION);
             mChannel.enableLights(true);
             mChannel.setLockscreenVisibility(Notification.VISIBILITY_PRIVATE);
-
-            if( !prefVibration ) {
-                AudioAttributes audioAttributes = new AudioAttributes.Builder()
-                    .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
-                    .setUsage(AudioAttributes.USAGE_ALARM)
-                    .build();
-
-                mChannel.setSound(sound, audioAttributes);
-            } else {
-                mChannel.enableVibration(true);
-                mChannel.setVibrationPattern(new long[]{100, 200, 100, 200});
-            }
+            AudioAttributes audioAttributes = new AudioAttributes.Builder()
+                .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                .setUsage(AudioAttributes.USAGE_ALARM)
+                .build();
+            mChannel.setSound(sound, audioAttributes);
+            mChannel.enableVibration(true);
+            mChannel.setVibrationPattern(new long[]{100, 200, 100, 200});
 
             mManager.createNotificationChannel(mChannel);
         }
@@ -149,21 +142,23 @@ public class CustomFirebaseMessagingService extends FirebaseMessagingService {
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID);
         builder.setSmallIcon(R.drawable.ic_launcher_background)
                 .setAutoCancel(true)
-                .setDefaults(Notification.DEFAULT_ALL)
+                .setDefaults(Notification.DEFAULT_VIBRATE)
                 .setWhen(System.currentTimeMillis())
                 .setSmallIcon(R.mipmap.ic_launcher)
                 .setContentTitle(title)
                 .setContentText(message)
-                .setContentIntent(pendingIntent);
+                .setContentIntent(pendingIntent)
+                .setSound(sound);
 
-        if( !prefVibration ) {
-            builder.setSound(sound);
+        if( !messageCount.isEmpty() ) {
+            builder.setNumber( Integer.valueOf(messageCount));
         }
 
-        if(Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
             builder.setContentTitle(title);
             builder.setVibrate(new long[]{100, 200, 100, 200});
         }
+
         mManager.notify(0, builder.build());
     }
 

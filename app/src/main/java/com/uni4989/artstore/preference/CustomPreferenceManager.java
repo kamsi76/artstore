@@ -36,4 +36,10 @@ public class CustomPreferenceManager {
     public static boolean getBoolean(Context context, String key) {
         return getPreferences(context).getBoolean(key, DEFAULT_VALUE_BOOLEAN);
     }
+
+    public static void setBoolean(Context context, String key, boolean value) {
+        SharedPreferences.Editor editor = getPreferences(context).edit();
+        editor.putBoolean(key, value);
+        editor.commit();
+    }
 }

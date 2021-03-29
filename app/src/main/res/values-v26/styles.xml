@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-
-    <style name="InfinitySansButtonStyle" parent="@android:style/Widget.DeviceDefault.Button.Borderless">
-        <item name="android:fontFamily">@font/common_font</item>
-        <item name="android:fontStyle"></item>
-    </style>
-</resources>

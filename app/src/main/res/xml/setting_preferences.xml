@@ -34,12 +34,12 @@
             defaultMins="0"
             android:layout="@layout/custom_timepicker_preference"/>
 
-        <SwitchPreference
+        <!--<SwitchPreference
             app:dependency="pref_notification"
             app:defaultValue="false"
             app:iconSpaceReserved="false"
             app:key="pref_vibration"
-            app:title="@string/vibration_title" />
+            app:title="@string/vibration_title" />-->
 
         <!--<Preference
             android:title="이건 몰까요?">
