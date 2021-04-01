@@ -36,8 +36,6 @@ import java.util.Date;
 
 public class CommonActivity extends AppCompatActivity {
 
-    private static final String TAG = "CommonActivity";
-
     private FirebaseRemoteConfig remoteConfig;
     private long latestVersion = 0;
 
@@ -104,8 +102,6 @@ public class CommonActivity extends AppCompatActivity {
                         }
                     }
                 });
-
-
     }
 
     public void openViewImage(String prductIndx) {}
