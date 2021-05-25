@@ -62,7 +62,7 @@ public class CommonActivity extends AppCompatActivity {
 
         remoteConfig = FirebaseRemoteConfig.getInstance();
         FirebaseRemoteConfigSettings configSettings = new FirebaseRemoteConfigSettings.Builder()
-                //.setMinimumFetchIntervalInSeconds(3600)
+                //.setMinimumFetchIntervalInSeconds(60)
                 .build();
         remoteConfig.setConfigSettingsAsync(configSettings);
 
@@ -79,6 +79,8 @@ public class CommonActivity extends AppCompatActivity {
                             } else {
                                 appVersion = pi.versionCode;
                             }
+
+                            Log.d("업데이트 알림", "checkVersion: "  + latestVersion );
 
                             if( latestVersion > appVersion ) {
                                 AlertDialog.Builder builder = new AlertDialog.Builder(this);

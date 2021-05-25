@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">유니아트</string>
+    <string name="app_name">유니아르떼</string>
     <string name="default_url">http://uni4989.cafe24.com/</string>
 
     <string name="default_notification_channel_id">Channel ID</string>
