@@ -67,7 +67,7 @@ public class MainActivity extends CommonActivity {
 
                 AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
                 builder.setTitle("알림");
-                builder.setMessage("권한을 허용해주셔야 유니아트 앱을 사용할 수 있습니다.");
+                builder.setMessage("권한을 허용해주셔야 예술장터 앱을 사용할 수 있습니다.");
                 builder.setPositiveButton("예", (dialog, which) -> {
                     Intent appDetail = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:" + getPackageName()));
                     appDetail.addCategory(Intent.CATEGORY_DEFAULT);

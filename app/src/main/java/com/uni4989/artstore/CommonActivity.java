@@ -167,7 +167,7 @@ public class CommonActivity extends AppCompatActivity {
                                 .build())
                 .setSocialMetaTagParameters(
                         new DynamicLink.SocialMetaTagParameters.Builder()
-                                .setTitle("너와 나의 예술품 직거리 장터 유니아트 :)")
+                                .setTitle("너와 나의 예술품 직거리 장터 예술장터 :)")
                                 .setImageUrl(Uri.parse(ImgUrl))
                                 .build())
                 .buildShortDynamicLink()
